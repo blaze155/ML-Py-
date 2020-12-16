@@ -1,0 +1,127 @@
+1.逻辑回归的介绍和应用
+1.1. 介绍
+Logistic Regression 是 分类 模型。
+突出特点： 模型简单， 模型可解释性强
+
+优点： 实现简单，易于理解和实现，计算代价不高，速度很快，存储资源低
+缺点： 容易欠拟合，分类精度可能不高
+
+1.2 应用
+逻辑回归模型广泛用于各个领域，包括机器学习，大多数医学领域和社会科学。
+TRISS预测受伤患者的死亡率，使用逻辑回归基于患者特征分析预测发生特定疾病的风险。
+用于预测给定过程中系统或产品发生故障的可能性
+用于市场营销应用程序，预测用户购买或取消订购的倾向。
+经济学中预测一个人进入劳动力市场的可能性
+商业应用中预测房主拖欠抵押贷款的可能性。
+条件随机字段是逻辑回归到顺序数据的扩张，用于自然语言处理
+
+逻辑回归模型是很多分类算法的基础组件。如
+分类任务重基于GBDT算法+LR逻辑回归实现的信用卡交易反欺诈, CTR(点击通过率)预估等
+
+好处：
+输出值自然落在0和1之间，并且有概率意义。
+模型清晰，有对应的概率学理论基础。
+拟合出来的参数代表了每一个特征对结果的影响
+是一个理解数据的好工具
+
+本质是一个线性的分类器，所以不能应对较为复杂的数据情况。
+很多时候可以做一些任务尝试的基线（基础水平）
+
+2. Python代码实现
+
+2.1 需要导入的库：
+
+2.1.1 基础函数库  
+import numpy as np
+import pandas as pd
+2.1.2 导入画图库
+import matplotlib.pyplot as plt
+import seaborn as sns
+2.1.3 导入逻辑回归模型函数
+from sklearn.linear_model import LogisticRegression
+
+2.2. 模型训练
+
+2.2.1 调用逻辑回归模型
+lr_clf = LogisticRegression()
+2.2.2 用逻辑回归模型拟合构造的数据集
+lr_clf = lr_clf.fit(x,y)
+
+2.3 模型参数查看
+lr_clf.coef_   查看对应模型的w
+lr_clf.intercept_   查看对应模型的w0
+
+2.4 数据模型可视化
+
+2.4.1 可视化构造数据样本点
+
+2.4.2 可视化决策边界
+----------------------------------
+plt.figure()
+plt.scatter(x_fearures[:,0],x_fearures[:,1], c=y_label, s=50, cmap='viridis')
+plt.title('Dataset')
+
+nx, ny = 200, 100
+x_min, x_max = plt.xlim()
+y_min, y_max = plt.ylim()
+x_grid, y_grid = np.meshgrid(np.linspace(x_min, x_max, nx),np.linspace(y_min, y_max, ny))
+
+z_proba = lr_clf.predict_proba(np.c_[x_grid.ravel(), y_grid.ravel()])
+z_proba = z_proba[:, 1].reshape(x_grid.shape)
+plt.contour(x_grid, y_grid, z_proba, [0.5], linewidths=2., colors='blue')
+
+plt.show()
+----------------------------------
+
+2.4.3 可视化预测新样本
+----------------------------------
+plt.figure()
+## new point 1
+x_fearures_new1 = np.array([[0, -1]])
+plt.scatter(x_fearures_new1[:,0],x_fearures_new1[:,1], s=50, cmap='viridis')
+plt.annotate(s='New point 1',xy=(0,-1),xytext=(-2,0),color='blue',arrowprops=dict(arrowstyle='-|>',connectionstyle='arc3',color='red'))
+
+## new point 2
+x_fearures_new2 = np.array([[1, 2]])
+plt.scatter(x_fearures_new2[:,0],x_fearures_new2[:,1], s=50, cmap='viridis')
+plt.annotate(s='New point 2',xy=(1,2),xytext=(-1.5,2.5),color='red',arrowprops=dict(arrowstyle='-|>',connectionstyle='arc3',color='red'))
+
+## 训练样本
+plt.scatter(x_fearures[:,0],x_fearures[:,1], c=y_label, s=50, cmap='viridis')
+plt.title('Dataset')
+
+# 可视化决策边界
+plt.contour(x_grid, y_grid, z_proba, [0.5], linewidths=2., colors='blue')
+
+plt.show()
+----------------------------------
+
+2.4.4 在训练集和测试集上分布利用训练好的模型进行预测
+----------------------------------
+y_label_new1_predict = lr_clf.predict(x_fearures_new1)
+y_label_new2_predict = lr_clf.predict(x_fearures_new2)
+
+print('The New point 1 predict class:\n',y_label_new1_predict)
+print('The New point 2 predict class:\n',y_label_new2_predict)
+
+## 由于逻辑回归模型是概率预测模型（前文介绍的 p = p(y=1|x,\theta)）,所有我们可以利用 predict_proba 函数预测其概率
+y_label_new1_predict_proba = lr_clf.predict_proba(x_fearures_new1)
+y_label_new2_predict_proba = lr_clf.predict_proba(x_fearures_new2)
+
+print('The New point 1 predict Probability of each class:\n',y_label_new1_predict_proba)
+print('The New point 2 predict Probability of each class:\n',y_label_new2_predict_proba)
+----------------------------------
+
+3 逻辑回归 原理简介：
+
+Logistic回归虽然名字里带“回归”，但是它实际上是一种分类方法，主要用于两分类问题（即输出只有两种，分别代表两个类别），所以利用了Logistic函数（或称为Sigmoid函数），函数形式为：
+𝑙𝑜𝑔𝑖(𝑧)=1/(1+𝑒^−𝑧)
+ 
+Logistic 函数是单调递增函数，并且在z=0的时候取值为0.5，并且 𝑙𝑜𝑔𝑖(⋅) 函数的取值范围为 (0,1) 。
+
+逻辑回归从其原理上来说，逻辑回归其实是实现了一个决策边界：对于函数  𝑦=11+𝑒−𝑧 ,当  𝑧=>0 时, 𝑦=>0.5 ,分类为1，当  𝑧<0 时, 𝑦<0.5 ,分类为0，其对应的 𝑦 值我们可以视为类别1的概率预测值.
+
+对于模型的训练而言：实质上来说就是利用数据求解出对应的模型的特定的 𝑤 。从而得到一个针对于当前数据的特征逻辑回归模型。
+
+而对于多分类而言，将多个二分类的逻辑回归组合，即可实现多分类。
+
